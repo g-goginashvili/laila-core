@@ -1,0 +1,19 @@
+{
+  "name": "laila-core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "laila-core.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch laila-core.ts"
+  },
+  "keywords": [],
+  "author": "Giorgi",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  }
+}
