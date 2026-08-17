@@ -2,11 +2,11 @@
   "name": "laila-core",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/laila-core.js",
+  "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/laila-core.js",
-    "dev": "tsx watch laila-core.ts"
+    "start": "node dist/main.js",
+    "dev": "tsx watch src/main.ts"
   },
   "keywords": [],
   "author": "Giorgi",
