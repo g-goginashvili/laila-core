@@ -5,4 +5,7 @@ export const config = {
     methods: ["GET", "POST", "PATCH", "DELETE"],
   },
   bodyLimit: "10kb",
+  db: {
+    url: process.env.DATABASE_URL
+  }
 };
