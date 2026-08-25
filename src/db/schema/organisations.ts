@@ -4,7 +4,7 @@ import { v7 as uuidv7 } from "uuid";
 
 export const organisations = pgTable("organisations", {
     id: varchar({ length: 255 }).primaryKey().$defaultFn(uuidv7),
-    adminUserId: varchar({ length: 255 }).notNull().references(() => users.id),
+    adminUserId: varchar("admin_user_id", { length: 255 }).notNull().references(() => users.id),
     orgName: varchar("org_name", { length: 255 }).notNull(),
     address: varchar({ length: 255 }).notNull(),
     signleLocation: boolean("single_location").notNull().default(true)

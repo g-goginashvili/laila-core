@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { adminSignUpController } from "../controllers/auth.controller.js";
+import { adminSignUpController } from "../modules/auth.module/auth.controller.js";
 import { validate } from "../middlewares/validate.js";
-import { adminSignUpSchema } from "../validators/auth.schema.js";
+import { adminSignUpSchema } from "../modules/auth.module/auth.schema.js";
 
 export const authRouter = Router();
 

@@ -1,8 +1,8 @@
-import { auth } from "../lib/firebase.js"
-import { addOrganisation } from "../repositories/organisations.repository.js";
-import { addAdminUser } from "../repositories/users.repository.js";
-import { authToAppError } from "../utils/firebase-auth-error.js";
-import type { AdminSignUpType } from "../validators/auth.schema.js";
+import { auth } from "../../lib/firebase.js"
+import { addOrganisation } from "../organisations.module/organisations.repository.js";
+import { insertAdminUser } from "./users.repository.js";
+import { authToAppError } from "../../utils/firebase-auth-error.js";
+import type { AdminSignUpType } from "../../modules/auth.module/auth.schema.js";
 
 export const adminSignUp = async ({
     name, surname, email, password,
@@ -18,7 +18,7 @@ export const adminSignUp = async ({
 
         await auth.setCustomUserClaims(user.uid, { role: "admin" });
 
-        await addAdminUser({
+        await insertAdminUser({
             id: user.uid,
             name,
             surname,
