@@ -17,4 +17,4 @@ export const stores = pgTable("stores", {
 
 export type storesInsertType = Omit<typeof stores.$inferInsert, "id">;
 export type storesSelectType = typeof stores.$inferSelect;
-export type storesUpdateType = Partial<Omit<typeof stores.$inferInsert, "id" | "adminUserid" | "organisationId">>;
+export type storesUpdateType = Partial<Omit<typeof stores.$inferInsert, "id" | "adminUserId" | "organisationId">>;
