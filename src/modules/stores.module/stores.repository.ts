@@ -1,9 +1,16 @@
 import { db } from "../../lib/db.js"
 import { stores, type storesInsertType, type storesUpdateType } from "../../db/schema/stores.js";
 import { eq } from "drizzle-orm";
+import type { PgAsyncTransaction } from "drizzle-orm/pg-core";
+import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
+import type { EmptyRelations } from "drizzle-orm";
 
-export const insertStore = async (insertValues: storesInsertType) => {
-    return await db.insert(stores).values(insertValues).returning();
+export const insertStore = async (
+    insertValues: storesInsertType,
+    tx?: PgAsyncTransaction<NodePgQueryResultHKT, EmptyRelations>
+) => {
+    const connection = tx ? tx : db;
+    return await connection.insert(stores).values(insertValues).returning();
 };
 
 export const selectStore = async (id: string) => {

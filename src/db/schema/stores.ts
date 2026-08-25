@@ -1,5 +1,4 @@
-import { varchar } from "drizzle-orm/cockroach-core";
-import { pgTable } from "drizzle-orm/pg-core";
+import { pgTable, varchar } from "drizzle-orm/pg-core";
 import { v7 as uuidv7 } from "uuid";
 import { users } from "./users.js";
 import { organisations } from "./organisations.js";

@@ -7,7 +7,7 @@ export const organisations = pgTable("organisations", {
     adminUserId: varchar("admin_user_id", { length: 255 }).notNull().references(() => users.id),
     orgName: varchar("org_name", { length: 255 }).notNull(),
     address: varchar({ length: 255 }).notNull(),
-    signleLocation: boolean("single_location").notNull().default(true)
+    singleLocation: boolean("single_location").notNull().default(true)
 });
 
 export type organisationsInsertType = Omit<typeof organisations.$inferInsert, "id">;
