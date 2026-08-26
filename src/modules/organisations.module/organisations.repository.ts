@@ -14,5 +14,5 @@ export const addOrganisation = async (
 };
 
 export const selectOrganisation = async (id: string) => {
-    return await db.select().from(organisations).where(eq(organisations.id, id));
+    return await db.select().from(organisations).where(eq(organisations.adminUserId, id));
 };
