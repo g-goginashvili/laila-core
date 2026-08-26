@@ -17,6 +17,10 @@ export const selectStore = async (id: string) => {
     return await db.select().from(stores).where(eq(stores.id, id));
 };
 
+export const selectStoresList = async (organisationId: string) => {
+    return await db.select().from(stores).where(eq(stores.organisationId, organisationId));
+};
+
 export const updateStore = async (id: string, updateValues: storesUpdateType) => {
     return db.update(stores).set(updateValues).where(eq(stores.id, id)).returning();
 };
