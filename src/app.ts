@@ -1,4 +1,4 @@
-import express, { type Express, type Request, type Response } from "express";
+import express, { type Express } from "express";
 import cors from "cors";
 import { config } from "./config/index.js";
 import { router } from "./routes/index.js";
@@ -11,6 +11,7 @@ export const app: Express = express();
 app.use(cors({
     origin: config.cors.origins,
     methods: config.cors.methods,
+    allowedHeaders: config.cors.allowedHeaders,
 }));
 
 app.use(express.json({ limit: config.bodyLimit }));

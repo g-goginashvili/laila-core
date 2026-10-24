@@ -1,30 +1,40 @@
-import { db } from "../../lib/db.js"
+import { db, type DbTransactionType } from "../../lib/db.js"
 import { stores, type storesInsertType, type storesUpdateType } from "../../db/schema/stores.js";
-import { eq } from "drizzle-orm";
-import type { PgAsyncTransaction } from "drizzle-orm/pg-core";
-import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
-import type { EmptyRelations } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
+
+const byIdInOrganisation = (id: string, organisationId: string) =>
+    and(eq(stores.id, id), eq(stores.organisationId, organisationId));
 
 export const insertStore = async (
     insertValues: storesInsertType,
-    tx?: PgAsyncTransaction<NodePgQueryResultHKT, EmptyRelations>
+    tx?: DbTransactionType
 ) => {
-    const connection = tx ? tx : db;
-    return await connection.insert(stores).values(insertValues).returning();
+    const connection = tx ?? db;
+    const [store] = await connection.insert(stores).values(insertValues).returning();
+    return store!;
 };
 
-export const selectStore = async (id: string) => {
-    return await db.select().from(stores).where(eq(stores.id, id));
+export const countStores = async (organisationId: string, tx?: DbTransactionType) => {
+    const connection = tx ?? db;
+    const [result] = await connection.select({ value: count() }).from(stores).where(eq(stores.organisationId, organisationId));
+    return result?.value ?? 0;
+};
+
+export const selectStore = async (id: string, organisationId: string) => {
+    const [store] = await db.select().from(stores).where(byIdInOrganisation(id, organisationId));
+    return store;
 };
 
 export const selectStoresList = async (organisationId: string) => {
-    return await db.select().from(stores).where(eq(stores.organisationId, organisationId));
+    return await db.select().from(stores).where(eq(stores.organisationId, organisationId)).orderBy(stores.id);
 };
 
-export const updateStore = async (id: string, updateValues: storesUpdateType) => {
-    return db.update(stores).set(updateValues).where(eq(stores.id, id)).returning();
+export const updateStore = async (id: string, organisationId: string, updateValues: storesUpdateType) => {
+    const [store] = await db.update(stores).set(updateValues).where(byIdInOrganisation(id, organisationId)).returning();
+    return store;
 };
 
-export const deleteStore = async (id: string) => {
-    return await db.delete(stores).where(eq(stores.id, id)).returning();
+export const deleteStore = async (id: string, organisationId: string) => {
+    const [store] = await db.delete(stores).where(byIdInOrganisation(id, organisationId)).returning();
+    return store;
 };

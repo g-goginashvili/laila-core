@@ -11,7 +11,7 @@ export const FIREBASE_AUTH_ERRORS: Record<string, ErrorMappingType> = {
     "auth/uid-already-exists": { statusCode: 409, message: "UID already in use" },
     
     "auth/invalid-email": { statusCode: 400, message: "Invalid email address" },
-    "auth/invalid-password": { statusCode: 400, message: "Password must be at least 6 characters" },
+    "auth/invalid-password": { statusCode: 400, message: "Password must be at least 8 characters" },
     "auth/invalid-phone-number": { statusCode: 400, message: "Phone number must be in E.164 format" },
     "auth/invalid-display-name": { statusCode: 400, message: "Invalid display name" },
     "auth/invalid-uid": { statusCode: 400, message: "Invalid uid" },

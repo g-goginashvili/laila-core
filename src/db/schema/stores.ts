@@ -10,10 +10,11 @@ export const stores = pgTable("stores", {
     storeName: varchar("store_name", { length: 255 }).notNull(),
     storeManager: varchar("store_manager", { length: 255 }).notNull(),
     address: varchar({ length: 255 }).notNull(),
-    email: varchar({ length: 255 }).notNull().unique(),
-    phoneNumber: varchar("phone_number", { length: 255 }).notNull().unique(),
+    email: varchar({ length: 255 }).notNull(),
+    phoneNumber: varchar("phone_number", { length: 255 }).notNull(),
 });
 
 export type storesInsertType = Omit<typeof stores.$inferInsert, "id">;
 export type storesSelectType = typeof stores.$inferSelect;
-export type storesUpdateType = Partial<Omit<typeof stores.$inferInsert, "id" | "adminUserId" | "organisationId">>;
+type storesEditableType = Omit<typeof stores.$inferInsert, "id" | "adminUserId" | "organisationId">;
+export type storesUpdateType = { [K in keyof storesEditableType]?: storesEditableType[K] | undefined };

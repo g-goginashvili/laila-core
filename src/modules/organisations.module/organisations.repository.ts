@@ -1,18 +1,26 @@
-import { db } from "../../lib/db.js"
+import { db, type DbTransactionType } from "../../lib/db.js"
 import { organisations, type organisationsInsertType } from "../../db/schema/organisations.js";
-import { eq, type EmptyRelations } from "drizzle-orm";
-import type { PgAsyncTransaction } from "drizzle-orm/pg-core";
-import type { NodePgQueryResultHKT } from "drizzle-orm/node-postgres";
+import { eq } from "drizzle-orm";
 
 export const addOrganisation = async (
     insertValues: organisationsInsertType,
-    tx?: PgAsyncTransaction<NodePgQueryResultHKT, EmptyRelations>
+    tx?: DbTransactionType
 ) => {
-    const connection = tx ? tx : db;
+    const connection = tx ?? db;
     const [organisationDetails] = await connection.insert(organisations).values(insertValues).returning();
     return organisationDetails!;
 };
 
-export const selectOrganisation = async (id: string) => {
-    return await db.select().from(organisations).where(eq(organisations.adminUserId, id));
+export const selectOrganisationByAdmin = async (adminUserId: string) => {
+    const [organisation] = await db.select().from(organisations).where(eq(organisations.adminUserId, adminUserId));
+    return organisation;
+};
+
+export const setOrganisationSingleLocation = async (
+    id: string,
+    singleLocation: boolean,
+    tx?: DbTransactionType
+) => {
+    const connection = tx ?? db;
+    await connection.update(organisations).set({ singleLocation }).where(eq(organisations.id, id));
 };
