@@ -39,13 +39,16 @@ export const getDashboardService = async (adminUserId: string) => {
     const storeList = await selectStoresList(organisation.id);
     const ids = storeList.map(store => store.id);
     const headlineNow = serviceNow(storeList[0]?.timezone ?? "Europe/Athens");
-    const historyFrom = addDays(headlineNow.date, -(HISTORY_DAYS - 1));
+    // Stores can sit in different time zones, so each one's "today" may differ; fetch a range covering all of them.
+    const storeDates = storeList.map(store => serviceNow(store.timezone).date).concat(headlineNow.date).sort();
+    const fetchFrom = addDays(storeDates[0]!, -(HISTORY_DAYS - 1));
+    const fetchTo = addDays(storeDates[storeDates.length - 1]!, 1);
 
     const [hours, tables, closures, reservationList, soldOut] = await Promise.all([
         selectHours(ids),
         selectTables(ids),
-        selectClosures(ids, historyFrom),
-        selectReservations(ids, historyFrom, addDays(headlineNow.date, 1)),
+        selectClosures(ids, fetchFrom),
+        selectReservations(ids, fetchFrom, fetchTo),
         ids.length === 0 ? [] : db.select({ storeId: menuItems.storeId, name: menuItems.name }).from(menuItems)
             .where(and(inArray(menuItems.storeId, ids), eq(menuItems.available, false))),
     ]);
@@ -93,6 +96,7 @@ export const getDashboardService = async (adminUserId: string) => {
                 && reservation.startMinutes <= now.minutes + ARRIVALS_WINDOW_MINUTES)
             .map(reservation => ({ ...reservation, tableLabel: tableLabel(reservation.tableId) })));
 
+        const historyFrom = addDays(now.date, -(HISTORY_DAYS - 1));
         const history = Array.from({ length: HISTORY_DAYS }, (_, index) => {
             const date = addDays(historyFrom, index);
             const day = storeReservations.filter(reservation => reservation.date === date);

@@ -12,8 +12,9 @@ const menuItemFields = {
     groupId: z.string().min(1).max(255),
     name: z.string().trim().min(1).max(150),
     description: z.string().trim().max(1000).default(""),
-    // Euros, as typed by the admin; stored as integer cents.
-    price: z.number().min(0).max(100_000),
+    // Euros, as typed by the admin; stored as integer cents, so at most two decimals.
+    price: z.number().min(0).max(100_000)
+        .refine(euros => Math.abs(euros * 100 - Math.round(euros * 100)) < 1e-6, "must have at most 2 decimals"),
     components: z.array(z.object({
         name: z.string().trim().min(1).max(100),
         allergen: z.boolean(),

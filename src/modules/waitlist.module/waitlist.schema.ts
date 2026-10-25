@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 export const joinWaitlistSchema = z.object({
-    email: z.email().trim().toLowerCase().max(255),
+    // Trim before validating: Zod runs checks in order.
+    email: z.string().trim().toLowerCase().pipe(z.email().max(255)),
 });
 
 export type JoinWaitlistSchemaType = z.infer<typeof joinWaitlistSchema>;

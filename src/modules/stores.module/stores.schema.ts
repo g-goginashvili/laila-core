@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { STORE_STATUSES } from "../../db/schema/stores.js";
-import { DATE_REGEX, isValidTimeZone, MINUTES_PER_DAY, SERVICE_DAY_CUTOFF_MINUTES } from "../../utils/service-time.js";
+import { DATE_REGEX, isCalendarDate, isValidTimeZone, MINUTES_PER_DAY, SERVICE_DAY_CUTOFF_MINUTES } from "../../utils/service-time.js";
 
 const phoneNumber = z.string().trim().regex(/^\+[1-9]\d{7,14}$/, "must be E.164 format");
 const optionalText = (max: number) => z.string().trim().max(max);
-const isoDate = z.string().regex(DATE_REGEX, "must be YYYY-MM-DD");
+const isoDate = z.string().regex(DATE_REGEX, "must be YYYY-MM-DD").refine(isCalendarDate, "must be a real date");
 const minutes = (max: number) => z.number().int().min(0).max(max);
 
 export const addStoreSchema = z.object({

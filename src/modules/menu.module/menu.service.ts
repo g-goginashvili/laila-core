@@ -51,7 +51,7 @@ export const deleteGroupService = async (adminUserId: string, storeId: string, g
 export const reorderGroupsService = async (adminUserId: string, storeId: string, { groupIds }: MenuGroupOrderSchemaType) => {
     await getOwnedStore(adminUserId, storeId);
     const existing = new Set((await selectGroups(storeId)).map(group => group.id));
-    if (groupIds.length !== existing.size || groupIds.some(id => !existing.has(id))) {
+    if (groupIds.length !== existing.size || new Set(groupIds).size !== groupIds.length || groupIds.some(id => !existing.has(id))) {
         throw new AppError(400, "groupIds must list every menu group exactly once.");
     }
     await reorderGroups(storeId, groupIds);

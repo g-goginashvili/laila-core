@@ -12,6 +12,12 @@ export const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 const toUtcDate = (date: string) => new Date(`${date}T00:00:00Z`);
 
+// Rejects well-formed but impossible dates such as 2027-02-30 or 2027-13-01.
+export const isCalendarDate = (date: string) => {
+    const value = toUtcDate(date);
+    return !Number.isNaN(value.getTime()) && value.toISOString().slice(0, 10) === date;
+};
+
 export const addDays = (date: string, days: number) => {
     const value = toUtcDate(date);
     value.setUTCDate(value.getUTCDate() + days);

@@ -34,6 +34,9 @@ export const pgToAppError = (error: unknown): AppError | undefined => {
             return new AppError(409, "Resource is referenced by other records");
         case "22001":
             return new AppError(400, "Value too long");
+        case "22007":
+        case "22008":
+            return new AppError(400, "Invalid date or time value");
         default:
             return undefined;
     }

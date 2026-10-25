@@ -23,6 +23,8 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
         next();
     } catch (error) {
         const code = (error as { code?: string } | null)?.code;
+        // A valid token for a deleted account is an authentication failure, not a missing resource.
+        if (code === "auth/user-not-found") return next(new AppError(401, "Invalid credentials"));
         const mapping = code ? FIREBASE_AUTH_ERRORS[code] : undefined;
         next(new AppError(mapping?.statusCode ?? 401, mapping?.message ?? "Invalid credentials"));
     }

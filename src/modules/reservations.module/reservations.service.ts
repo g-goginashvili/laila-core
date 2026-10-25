@@ -1,8 +1,9 @@
 import {
-    deleteReservation, insertReservation, selectReservation, selectReservations, updateReservation
+    deleteReservation, insertReservation, lockStoreBookings, selectReservation, selectReservations, updateReservation
 } from "./reservations.repository.js";
 import { getOwnedStore } from "../stores.module/stores.service.js";
 import { selectTables } from "../stores.module/stores.repository.js";
+import { db, type DbTransactionType } from "../../lib/db.js";
 import { AppError } from "../../utils/app-error.js";
 import { ACTIVE_RESERVATION_STATUSES, type reservationsSelectType } from "../../db/schema/reservations.js";
 import { daysBetween, formatMinutes } from "../../utils/service-time.js";
@@ -12,16 +13,19 @@ const MAX_RANGE_DAYS = 42;
 
 type SlotType = Pick<reservationsSelectType, "tableId" | "date" | "startMinutes" | "durationMinutes" | "status">;
 
-// Rejects a booking that would sit on a table another active booking already holds.
-const assertTableFree = async (storeId: string, slot: SlotType, ignoreId?: string) => {
-    if (!slot.tableId || !ACTIVE_RESERVATION_STATUSES.includes(slot.status)) return;
+// Rejects a table outside this store, and a booking that would sit on a table another
+// active booking already holds. Call inside a transaction holding lockStoreBookings.
+const assertTableFree = async (storeId: string, slot: SlotType, tx: DbTransactionType, ignoreId?: string) => {
+    if (!slot.tableId) return;
 
     const tables = await selectTables([storeId]);
     const table = tables.find(entry => entry.id === slot.tableId);
     if (!table) throw new AppError(404, "Table not found.");
 
+    if (!ACTIVE_RESERVATION_STATUSES.includes(slot.status)) return;
+
     const end = slot.startMinutes + slot.durationMinutes;
-    const clash = (await selectReservations([storeId], slot.date, slot.date)).find(other =>
+    const clash = (await selectReservations([storeId], slot.date, slot.date, tx)).find(other =>
         other.id !== ignoreId
         && other.tableId === slot.tableId
         && ACTIVE_RESERVATION_STATUSES.includes(other.status)
@@ -44,20 +48,26 @@ export const listReservationsService = async (adminUserId: string, storeId: stri
 
 export const addReservationService = async (adminUserId: string, storeId: string, values: AddReservationSchemaType) => {
     await getOwnedStore(adminUserId, storeId);
-    await assertTableFree(storeId, values);
-    return await insertReservation({ ...values, storeId });
+    return await db.transaction(async (tx) => {
+        await lockStoreBookings(storeId, tx);
+        await assertTableFree(storeId, values, tx);
+        return await insertReservation({ ...values, storeId }, tx);
+    });
 };
 
 export const updateReservationService = async (
     adminUserId: string, storeId: string, id: string, values: UpdateReservationSchemaType
 ) => {
     await getOwnedStore(adminUserId, storeId);
-    const current = await selectReservation(storeId, id);
-    if (!current) throw new AppError(404, "Reservation not found.");
+    return await db.transaction(async (tx) => {
+        await lockStoreBookings(storeId, tx);
+        const current = await selectReservation(storeId, id, tx);
+        if (!current) throw new AppError(404, "Reservation not found.");
 
-    const changes = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined));
-    await assertTableFree(storeId, { ...current, ...changes }, id);
-    return (await updateReservation(storeId, id, values))!;
+        const changes = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined));
+        await assertTableFree(storeId, { ...current, ...changes }, tx, id);
+        return (await updateReservation(storeId, id, values, tx))!;
+    });
 };
 
 export const deleteReservationService = async (adminUserId: string, storeId: string, id: string) => {

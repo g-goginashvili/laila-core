@@ -106,6 +106,9 @@ export const replaceTablesService = async (adminUserId: string, id: string, { ta
     const labels = tables.map(table => table.label.toLowerCase());
     if (new Set(labels).size !== labels.length) throw new AppError(400, "Table names must be unique.");
 
+    const ids = tables.flatMap(table => table.id ? [table.id] : []);
+    if (new Set(ids).size !== ids.length) throw new AppError(400, "Each table id may appear only once.");
+
     const existingIds = new Set((await selectTables([id])).map(table => table.id));
     if (tables.some(table => table.id && !existingIds.has(table.id))) throw new AppError(404, "Table not found.");
 
