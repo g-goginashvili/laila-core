@@ -1,6 +1,7 @@
 import { auth } from "../../lib/firebase.js"
 import { addOrganisation } from "../organisations.module/organisations.repository.js";
-import { insertAdminUser } from "./users.repository.js";
+import { insertAdminUser, selectUserById } from "./users.repository.js";
+import { AppError } from "../../utils/app-error.js";
 import { authToAppError } from "../../utils/firebase-auth-error.js";
 import type { AdminSignUpType } from "../../modules/auth.module/auth.schema.js";
 import { db } from "../../lib/db.js";
@@ -61,4 +62,10 @@ export const adminSignUp = async ({
     } catch (error) {
         authToAppError(error);
     }
+};
+
+export const getOwnAccount = async (uid: string) => {
+    const account = await selectUserById(uid);
+    if (!account) throw new AppError(404, "Account not found.");
+    return account;
 };
