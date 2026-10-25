@@ -64,6 +64,10 @@ export const storeTablesSchema = z.object({
     })).max(200),
 });
 
+export const tableOccupancySchema = z.object({
+    occupied: z.boolean(),
+});
+
 export const storeClosureSchema = z.object({
     date: isoDate,
     note: optionalText(255).default(""),
@@ -74,3 +78,4 @@ export type UpdateStoreSchemaType = z.infer<typeof updateStoreSchema>;
 export type StoreHoursSchemaType = z.infer<typeof storeHoursSchema>;
 export type StoreTablesSchemaType = z.infer<typeof storeTablesSchema>;
 export type StoreClosureSchemaType = z.infer<typeof storeClosureSchema>;
+export type TableOccupancySchemaType = z.infer<typeof tableOccupancySchema>;

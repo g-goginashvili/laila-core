@@ -1,0 +1,1 @@
+ALTER TABLE "store_tables" ADD COLUMN "occupied_since" timestamp with time zone;

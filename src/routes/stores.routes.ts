@@ -1,10 +1,11 @@
 import { Router } from "express";
 import {
     addClosureController, addStoreController, deleteClosureController, deleteStoreController, getStoreController,
-    getStoresListController, replaceHoursController, replaceTablesController, updateStoreController
+    getStoresListController, replaceHoursController, replaceTablesController, setTableOccupancyController,
+    updateStoreController
 } from "../modules/stores.module/stores.controller.js";
 import {
-    addStoreSchema, storeClosureSchema, storeHoursSchema, storeTablesSchema, updateStoreSchema
+    addStoreSchema, storeClosureSchema, storeHoursSchema, storeTablesSchema, tableOccupancySchema, updateStoreSchema
 } from "../modules/stores.module/stores.schema.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate, requireRole } from "../middlewares/authenticate.js";
@@ -22,6 +23,7 @@ storeRouter.patch("/:id", validate(updateStoreSchema), updateStoreController);
 storeRouter.delete("/:id", deleteStoreController);
 storeRouter.put("/:id/hours", validate(storeHoursSchema), replaceHoursController);
 storeRouter.put("/:id/tables", validate(storeTablesSchema), replaceTablesController);
+storeRouter.patch("/:id/tables/:tableId", validate(tableOccupancySchema), setTableOccupancyController);
 storeRouter.post("/:id/closures", validate(storeClosureSchema), addClosureController);
 storeRouter.delete("/:id/closures/:closureId", deleteClosureController);
 

@@ -71,7 +71,9 @@ export const getDashboardService = async (adminUserId: string) => {
         const isServiceOver = isOpenToday && now.minutes >= Math.max(...shiftsToday.map(shift => shift.closesMinutes));
 
         const currentSlot = Math.floor(now.minutes / SLOT_MINUTES) * SLOT_MINUTES;
-        const freeStarts = isOpenToday ? nextFreeStarts(store, shiftsToday, storeTables, today, currentSlot) : [];
+        // Occupied tables aren't free now, whatever the bookings say.
+        const bookableTables = storeTables.filter(table => !table.occupiedSince);
+        const freeStarts = isOpenToday ? nextFreeStarts(store, shiftsToday, bookableTables, today, currentSlot) : [];
         const seatsLeft = freeStarts.reduce((total, entry) => total + entry.table.seats, 0);
         const earliest = freeStarts.reduce<typeof freeStarts[number] | undefined>(
             (best, entry) => !best || entry.start < best.start ? entry : best, undefined);

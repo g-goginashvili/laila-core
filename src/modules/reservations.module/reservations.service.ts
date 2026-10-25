@@ -13,9 +13,12 @@ const MAX_RANGE_DAYS = 42;
 
 type SlotType = Pick<reservationsSelectType, "tableId" | "date" | "startMinutes" | "durationMinutes" | "status">;
 
-// Rejects a table outside this store, and a booking that would sit on a table another
-// active booking already holds. Call inside a transaction holding lockStoreBookings.
-const assertTableFree = async (storeId: string, slot: SlotType, tx: DbTransactionType, ignoreId?: string) => {
+// Rejects a table outside this store, an occupied table the booking is being placed on, and a
+// booking that would sit on a table another active booking already holds.
+// Call inside a transaction holding lockStoreBookings.
+const assertTableFree = async (
+    storeId: string, slot: SlotType, tx: DbTransactionType, { ignoreId, placing }: { ignoreId?: string, placing: boolean }
+) => {
     if (!slot.tableId) return;
 
     const tables = await selectTables([storeId]);
@@ -23,6 +26,9 @@ const assertTableFree = async (storeId: string, slot: SlotType, tx: DbTransactio
     if (!table) throw new AppError(404, "Table not found.");
 
     if (!ACTIVE_RESERVATION_STATUSES.includes(slot.status)) return;
+
+    // Bookings already on the table stay editable (e.g. marking them seated once the guests sit down).
+    if (placing && table.occupiedSince) throw new AppError(409, `${table.label} is occupied. Free it on the Tables page first.`);
 
     const end = slot.startMinutes + slot.durationMinutes;
     const clash = (await selectReservations([storeId], slot.date, slot.date, tx)).find(other =>
@@ -50,7 +56,7 @@ export const addReservationService = async (adminUserId: string, storeId: string
     await getOwnedStore(adminUserId, storeId);
     return await db.transaction(async (tx) => {
         await lockStoreBookings(storeId, tx);
-        await assertTableFree(storeId, values, tx);
+        await assertTableFree(storeId, values, tx, { placing: true });
         return await insertReservation({ ...values, storeId }, tx);
     });
 };
@@ -65,7 +71,11 @@ export const updateReservationService = async (
         if (!current) throw new AppError(404, "Reservation not found.");
 
         const changes = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== undefined));
-        await assertTableFree(storeId, { ...current, ...changes }, tx, id);
+        const next = { ...current, ...changes };
+        // Moving to another table, or reactivating a cancelled/finished booking, places it anew.
+        const placing = next.tableId !== current.tableId
+            || (!ACTIVE_RESERVATION_STATUSES.includes(current.status) && ACTIVE_RESERVATION_STATUSES.includes(next.status));
+        await assertTableFree(storeId, next, tx, { ignoreId: id, placing });
         return (await updateReservation(storeId, id, values, tx))!;
     });
 };

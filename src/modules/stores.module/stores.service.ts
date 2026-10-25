@@ -1,13 +1,15 @@
 import {
     countStores, deleteClosure, deleteStore, insertClosure, insertStore, replaceHours, replaceTables,
-    selectClosures, selectHours, selectMenuCounts, selectStore, selectStoresList, selectTables, updateStore
+    selectClosures, selectHours, selectMenuCounts, selectStore, selectStoresList, selectTables, updateStore,
+    updateTableOccupancy
 } from "./stores.repository.js"
 import { AppError } from "../../utils/app-error.js";
 import { db } from "../../lib/db.js";
 import { getOwnOrganisation } from "../organisations.module/organisations.service.js";
 import { setOrganisationSingleLocation } from "../organisations.module/organisations.repository.js";
 import type {
-    AddStoreSchemaType, StoreClosureSchemaType, StoreHoursSchemaType, StoreTablesSchemaType, UpdateStoreSchemaType
+    AddStoreSchemaType, StoreClosureSchemaType, StoreHoursSchemaType, StoreTablesSchemaType, TableOccupancySchemaType,
+    UpdateStoreSchemaType
 } from "./stores.schema.js";
 import type { storesSelectType } from "../../db/schema/stores.js";
 import { addDays, serviceNow } from "../../utils/service-time.js";
@@ -114,6 +116,13 @@ export const replaceTablesService = async (adminUserId: string, id: string, { ta
 
     await replaceTables(id, tables);
     return await getStoreService(adminUserId, id);
+};
+
+export const setTableOccupancyService = async (
+    adminUserId: string, id: string, tableId: string, { occupied }: TableOccupancySchemaType
+) => {
+    await getOwnedStore(adminUserId, id);
+    return orThrowNotFound(await updateTableOccupancy(id, tableId, occupied), "Table not found.");
 };
 
 export const addClosureService = async (adminUserId: string, id: string, { date, note }: StoreClosureSchemaType) => {

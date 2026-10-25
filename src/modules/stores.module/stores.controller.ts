@@ -1,15 +1,17 @@
 import type { Request, Response } from "express";
 import {
     addClosureService, addStoreService, deleteClosureService, deleteStoreService, getStoreService,
-    getStoresListService, replaceHoursService, replaceTablesService, updateStoreService
+    getStoresListService, replaceHoursService, replaceTablesService, setTableOccupancyService, updateStoreService
 } from "./stores.service.js";
 import type {
-    AddStoreSchemaType, StoreClosureSchemaType, StoreHoursSchemaType, StoreTablesSchemaType, UpdateStoreSchemaType
+    AddStoreSchemaType, StoreClosureSchemaType, StoreHoursSchemaType, StoreTablesSchemaType, TableOccupancySchemaType,
+    UpdateStoreSchemaType
 } from "./stores.schema.js";
 import { getAuth } from "../../middlewares/authenticate.js";
 
 type StoreParamsType = { id: string };
 type ClosureParamsType = { id: string, closureId: string };
+type TableParamsType = { id: string, tableId: string };
 
 export const addStoreController = async (req: Request<{}, {}, AddStoreSchemaType>, res: Response) => {
     res.status(201).json(await addStoreService(getAuth(req).uid, req.body));
@@ -37,6 +39,10 @@ export const replaceHoursController = async (req: Request<StoreParamsType, {}, S
 
 export const replaceTablesController = async (req: Request<StoreParamsType, {}, StoreTablesSchemaType>, res: Response) => {
     res.status(200).json(await replaceTablesService(getAuth(req).uid, req.params.id, req.body));
+};
+
+export const setTableOccupancyController = async (req: Request<TableParamsType, {}, TableOccupancySchemaType>, res: Response) => {
+    res.status(200).json(await setTableOccupancyService(getAuth(req).uid, req.params.id, req.params.tableId, req.body));
 };
 
 export const addClosureController = async (req: Request<StoreParamsType, {}, StoreClosureSchemaType>, res: Response) => {

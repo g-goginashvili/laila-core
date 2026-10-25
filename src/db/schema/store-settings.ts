@@ -1,4 +1,4 @@
-import { pgTable, varchar, smallint, integer, date, index, unique } from "drizzle-orm/pg-core";
+import { pgTable, varchar, smallint, integer, date, index, unique, timestamp } from "drizzle-orm/pg-core";
 import { v7 as uuidv7 } from "uuid";
 import { stores } from "./stores.js";
 
@@ -19,6 +19,9 @@ export const storeTables = pgTable("store_tables", {
     seats: smallint().notNull(),
     area: varchar({ length: 50 }).notNull().default(""),
     position: integer().notNull().default(0),
+    // Set while guests sit at the table (walk-ins included); null when it's free.
+    // An occupied table can't take new bookings.
+    occupiedSince: timestamp("occupied_since", { withTimezone: true }),
 }, (table) => [unique("store_tables_store_label_key").on(table.storeId, table.label)]);
 
 // Whole days a store doesn't take reservations (holidays, private events).

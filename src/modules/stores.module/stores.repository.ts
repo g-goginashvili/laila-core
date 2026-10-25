@@ -2,7 +2,7 @@ import { db, type DbTransactionType } from "../../lib/db.js"
 import { stores, type storesInsertType, type storesUpdateType } from "../../db/schema/stores.js";
 import { storeClosures, storeHours, storeTables } from "../../db/schema/store-settings.js";
 import { menuGroups, menuItems } from "../../db/schema/menu.js";
-import { and, asc, count, eq, gte, inArray, notInArray } from "drizzle-orm";
+import { and, asc, count, eq, gte, inArray, notInArray, sql } from "drizzle-orm";
 
 const byIdInOrganisation = (id: string, organisationId: string) =>
     and(eq(stores.id, id), eq(stores.organisationId, organisationId));
@@ -96,6 +96,15 @@ export const replaceTables = async (
             }
         }
     });
+};
+
+// Marking an already-occupied table again keeps its original start time.
+export const updateTableOccupancy = async (storeId: string, tableId: string, occupied: boolean) => {
+    const [table] = await db.update(storeTables)
+        .set({ occupiedSince: occupied ? sql`coalesce(${storeTables.occupiedSince}, now())` : null })
+        .where(and(eq(storeTables.id, tableId), eq(storeTables.storeId, storeId)))
+        .returning();
+    return table;
 };
 
 export const selectClosures = async (storeIds: string[], fromDate: string) => {
