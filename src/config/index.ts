@@ -14,7 +14,7 @@ export const config = {
     origins: process.env.CORS_ORIGINS
       ? process.env.CORS_ORIGINS.split(",").map(origin => origin.trim()).filter(Boolean)
       : DEFAULT_CORS_ORIGINS,
-    methods: ["GET", "POST", "PATCH", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   },
   bodyLimit: "10kb",

@@ -31,6 +31,11 @@ user, never from the request.
 | GET | `/stores/:id` | admin | 404 if not in the admin's organisation |
 | PATCH | `/stores/:id` | admin | Partial update |
 | DELETE | `/stores/:id` | admin | |
+| PUT | `/stores/:id/hours`, `/stores/:id/tables` | admin | Replace opening hours / tables (tables upsert by id) |
+| POST, DELETE | `/stores/:id/closures[/:closureId]` | admin | Whole-day closures |
+| GET, POST, PATCH, DELETE, PUT | `/stores/:storeId/menu/…` | admin | Groups, items, `PUT groups/order` |
+| GET, POST, PATCH, DELETE | `/stores/:storeId/reservations[/:id]` | admin | `GET` needs `?from=&to=` (YYYY-MM-DD) |
+| GET | `/dashboard` | admin | Today, attention items, arrivals, 14-day history per store |
 | POST | `/waitlist` | public | Landing-page launch notification sign-up |
 
 Errors are returned as `{ "message": string }`. Unique-constraint violations map to 409.

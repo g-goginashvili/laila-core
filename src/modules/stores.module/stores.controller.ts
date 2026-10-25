@@ -1,9 +1,15 @@
 import type { Request, Response } from "express";
-import { addStoreService, deleteStoreService, getStoreService, getStoresListService, updateStoreService } from "./stores.service.js";
-import type { AddStoreSchemaType, UpdateStoreSchemaType } from "./stores.schema.js";
+import {
+    addClosureService, addStoreService, deleteClosureService, deleteStoreService, getStoreService,
+    getStoresListService, replaceHoursService, replaceTablesService, updateStoreService
+} from "./stores.service.js";
+import type {
+    AddStoreSchemaType, StoreClosureSchemaType, StoreHoursSchemaType, StoreTablesSchemaType, UpdateStoreSchemaType
+} from "./stores.schema.js";
 import { getAuth } from "../../middlewares/authenticate.js";
 
 type StoreParamsType = { id: string };
+type ClosureParamsType = { id: string, closureId: string };
 
 export const addStoreController = async (req: Request<{}, {}, AddStoreSchemaType>, res: Response) => {
     res.status(201).json(await addStoreService(getAuth(req).uid, req.body));
@@ -23,4 +29,20 @@ export const updateStoreController = async (req: Request<StoreParamsType, {}, Up
 
 export const deleteStoreController = async (req: Request<StoreParamsType>, res: Response) => {
     res.status(200).json(await deleteStoreService(getAuth(req).uid, req.params.id));
+};
+
+export const replaceHoursController = async (req: Request<StoreParamsType, {}, StoreHoursSchemaType>, res: Response) => {
+    res.status(200).json(await replaceHoursService(getAuth(req).uid, req.params.id, req.body));
+};
+
+export const replaceTablesController = async (req: Request<StoreParamsType, {}, StoreTablesSchemaType>, res: Response) => {
+    res.status(200).json(await replaceTablesService(getAuth(req).uid, req.params.id, req.body));
+};
+
+export const addClosureController = async (req: Request<StoreParamsType, {}, StoreClosureSchemaType>, res: Response) => {
+    res.status(201).json(await addClosureService(getAuth(req).uid, req.params.id, req.body));
+};
+
+export const deleteClosureController = async (req: Request<ClosureParamsType>, res: Response) => {
+    res.status(200).json(await deleteClosureService(getAuth(req).uid, req.params.id, req.params.closureId));
 };
