@@ -18,13 +18,15 @@ and keep `FIREBASE_AUTH_EMULATOR_HOST` set.
 
 Protected routes expect `Authorization: Bearer <Firebase ID token>`. The token must carry the `admin`
 custom claim (set during sign-up). The organisation and stores are always resolved from the token's
-user, never from the request.
+user, never from the request. Diners (Gviano app) get the `diner` claim from `/auth/diner-sign-up` and
+are refused by every admin route.
 
 ## Endpoints (prefix `/api`)
 
 | Method | Path | Auth | Notes |
 | --- | --- | --- | --- |
 | POST | `/auth/admin-sign-up` | public | Creates Firebase user, user row, organisation, and a store when `singleLocation` |
+| POST | `/auth/diner-sign-up` | public | `{ email, password }`: creates a Firebase user with the `diner` role and a diners row |
 | GET | `/org` | admin | The signed-in admin's organisation |
 | GET | `/stores` | admin | Stores of the admin's organisation |
 | POST | `/stores` | admin | Create a store (flips `singleLocation` off once there are 2+) |

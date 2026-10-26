@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { adminSignUpController } from "../modules/auth.module/auth.controller.js";
+import { adminSignUpController, dinerSignUpController } from "../modules/auth.module/auth.controller.js";
 import { validate } from "../middlewares/validate.js";
-import { adminSignUpSchema } from "../modules/auth.module/auth.schema.js";
+import { adminSignUpSchema, dinerSignUpSchema } from "../modules/auth.module/auth.schema.js";
 
 export const authRouter = Router();
 
 authRouter.post("/admin-sign-up", validate(adminSignUpSchema), adminSignUpController);
+authRouter.post("/diner-sign-up", validate(dinerSignUpSchema), dinerSignUpController);

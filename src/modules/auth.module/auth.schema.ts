@@ -12,3 +12,11 @@ export const adminSignUpSchema = z.object({
 });
 
 export type AdminSignUpType = z.infer<typeof adminSignUpSchema>;
+
+export const dinerSignUpSchema = z.object({
+    // Trim before validating: Zod runs checks in order.
+    email: z.string().trim().toLowerCase().pipe(z.email().max(255)),
+    password: z.string().min(8).max(128),
+});
+
+export type DinerSignUpType = z.infer<typeof dinerSignUpSchema>;

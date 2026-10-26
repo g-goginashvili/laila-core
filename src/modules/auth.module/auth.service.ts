@@ -3,9 +3,10 @@ import { addOrganisation } from "../organisations.module/organisations.repositor
 import { insertAdminUser, selectUserById } from "./users.repository.js";
 import { AppError } from "../../utils/app-error.js";
 import { authToAppError } from "../../utils/firebase-auth-error.js";
-import type { AdminSignUpType } from "../../modules/auth.module/auth.schema.js";
+import type { AdminSignUpType, DinerSignUpType } from "../../modules/auth.module/auth.schema.js";
 import { db } from "../../lib/db.js";
 import { insertStore } from "../stores.module/stores.repository.js";
+import { insertDiner } from "./diners.repository.js";
 
 
 
@@ -51,6 +52,26 @@ export const adminSignUp = async ({
                     storeManager: `${name} ${surname}`
                 }, tx)
             });
+        } catch (error) {
+            await auth.deleteUser(user.uid).catch((cleanupError) => {
+                console.error("Failed to roll back Firebase user", user.uid, cleanupError);
+            });
+            throw error;
+        }
+
+        return { uid: user.uid };
+    } catch (error) {
+        authToAppError(error);
+    }
+};
+
+export const dinerSignUp = async ({ email, password }: DinerSignUpType) => {
+    try {
+        const user = await auth.createUser({ email, password });
+
+        try {
+            await auth.setCustomUserClaims(user.uid, { role: "diner" });
+            await insertDiner({ id: user.uid, email });
         } catch (error) {
             await auth.deleteUser(user.uid).catch((cleanupError) => {
                 console.error("Failed to roll back Firebase user", user.uid, cleanupError);
