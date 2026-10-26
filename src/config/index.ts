@@ -6,6 +6,7 @@ const DEFAULT_CORS_ORIGINS = [
   "https://gviano.firebaseapp.com",
   "https://gviano.com",
   "https://www.gviano.com",
+  "https://manager.gviano.com",
 ];
 
 export const config = {
