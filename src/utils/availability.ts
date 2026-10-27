@@ -1,7 +1,7 @@
 import type { storesSelectType } from "../db/schema/stores.js";
 import type { storeClosuresSelectType, storeHoursSelectType, storeTablesSelectType } from "../db/schema/store-settings.js";
 import { ACTIVE_RESERVATION_STATUSES, type reservationsSelectType } from "../db/schema/reservations.js";
-import { weekdayOf } from "./service-time.js";
+import { daysBetween, MINUTES_PER_DAY, weekdayOf, type ServiceNowType } from "./service-time.js";
 
 export const SLOT_MINUTES = 30;
 // Bookings that start before this count as lunch for the shorter lunch table time.
@@ -73,4 +73,50 @@ export const nextFreeStarts = (
         const start = starts.find(slot => isTableFree(table.id, slot, tableTimeFor(store, slot), dayReservations));
         return start === undefined ? [] : [{ table, start }];
     });
+};
+
+type DayReservationType = Pick<reservationsSelectType, "tableId" | "startMinutes" | "durationMinutes" | "status">;
+type BookingPolicyType = StorePolicyType & Pick<storesSelectType, "minNoticeHours">;
+
+// Starts on `date` a diner could still book, each with the tables free for the whole table time: past the store's
+// minimum notice and seating at least `partySize` when given. An occupied table counts as taken for one table
+// time from now. Tables come back smallest first, so the first one is the best fit.
+export const freeStartsOn = (
+    store: BookingPolicyType,
+    shifts: ShiftType[],
+    tables: storeTablesSelectType[],
+    dayReservations: DayReservationType[],
+    { date, now, partySize }: { date: string, now: ServiceNowType, partySize?: number }
+) => {
+    // Notice is counted across service days, so it can reach into tomorrow's first slots.
+    const earliest = now.minutes + store.minNoticeHours * 60 - daysBetween(now.date, date) * MINUTES_PER_DAY;
+    const occupiedUntil = date === now.date ? now.minutes + tableTimeFor(store, now.minutes) : -Infinity;
+    const fitting = tables
+        .filter(table => partySize === undefined || table.seats >= partySize)
+        .sort((a, b) => a.seats - b.seats);
+
+    return bookableStarts(store, shifts).filter(start => start >= earliest).flatMap(start => {
+        const duration = tableTimeFor(store, start);
+        const free = fitting.filter(table =>
+            !(table.occupiedSince && start < occupiedUntil) && isTableFree(table.id, start, duration, dayReservations));
+        return free.length > 0 ? [{ start, duration, tables: free }] : [];
+    });
+};
+
+// Inside opening hours right now.
+export const isOpenAt = (shifts: ShiftType[], minutes: number) =>
+    shifts.some(shift => shift.opensMinutes <= minutes && minutes < shift.closesMinutes);
+
+// Whether a walk-in could sit down now: still before last seating, with a table that is neither occupied
+// nor booked within the next table time.
+export const isTableFreeNow = (
+    store: StorePolicyType,
+    shifts: ShiftType[],
+    tables: storeTablesSelectType[],
+    todayReservations: DayReservationType[],
+    minutes: number
+) => {
+    const isSeating = shifts.some(shift => shift.opensMinutes <= minutes && minutes <= shift.closesMinutes - store.lastSeatingMinutes);
+    const duration = tableTimeFor(store, minutes);
+    return isSeating && tables.some(table => !table.occupiedSince && isTableFree(table.id, minutes, duration, todayReservations));
 };

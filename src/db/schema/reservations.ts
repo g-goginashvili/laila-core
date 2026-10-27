@@ -2,6 +2,7 @@ import { pgTable, varchar, text, smallint, date, timestamp, index } from "drizzl
 import { v7 as uuidv7 } from "uuid";
 import { stores } from "./stores.js";
 import { storeTables } from "./store-settings.js";
+import { diners } from "./diners.js";
 
 export const RESERVATION_STATUSES = ["unconfirmed", "confirmed", "seated", "finished", "no_show", "cancelled"] as const;
 export type ReservationStatusType = typeof RESERVATION_STATUSES[number];
@@ -13,6 +14,8 @@ export const reservations = pgTable("reservations", {
     id: varchar({ length: 255 }).primaryKey().$defaultFn(uuidv7),
     storeId: varchar("store_id", { length: 255 }).notNull().references(() => stores.id, { onDelete: "cascade" }),
     tableId: varchar("table_id", { length: 255 }).references(() => storeTables.id, { onDelete: "set null" }),
+    // Set when a diner booked it from the Gviano app; null for bookings staff entered.
+    dinerId: varchar("diner_id", { length: 255 }).references(() => diners.id, { onDelete: "set null" }),
     // Service date and minutes from its midnight (after-midnight starts are > 1440).
     date: date({ mode: "string" }).notNull(),
     startMinutes: smallint("start_minutes").notNull(),

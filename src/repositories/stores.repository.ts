@@ -36,6 +36,11 @@ export const selectListedStores = async () => {
     return await db.select().from(stores).where(ne(stores.status, "draft")).orderBy(asc(stores.storeName), asc(stores.id));
 };
 
+export const selectListedStore = async (id: string) => {
+    const [store] = await db.select().from(stores).where(and(eq(stores.id, id), ne(stores.status, "draft")));
+    return store;
+};
+
 export const updateStore = async (id: string, organisationId: string, updateValues: storesUpdateType) => {
     const [store] = await db.update(stores).set(updateValues).where(byIdInOrganisation(id, organisationId)).returning();
     return store;

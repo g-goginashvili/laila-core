@@ -1,0 +1,2 @@
+ALTER TABLE "reservations" ADD COLUMN "diner_id" varchar(255);--> statement-breakpoint
+ALTER TABLE "reservations" ADD CONSTRAINT "reservations_diner_id_diners_id_fkey" FOREIGN KEY ("diner_id") REFERENCES "diners"("id") ON DELETE SET NULL;
