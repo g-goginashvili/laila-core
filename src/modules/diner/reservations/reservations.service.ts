@@ -44,7 +44,7 @@ export const bookReservationService = async (uid: string, { storeId, date, start
             phone: account.phoneNumber!,
             email: account.email,
             notes,
-            status: "confirmed",
+            status: "upcoming",
         }, tx);
     });
 

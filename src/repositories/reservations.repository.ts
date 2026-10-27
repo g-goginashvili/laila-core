@@ -18,6 +18,14 @@ export const selectReservations = async (storeIds: string[], from: string, to: s
         .orderBy(asc(reservations.date), asc(reservations.startMinutes));
 };
 
+// Parties sitting at their table right now, whatever their service date.
+export const selectOngoingReservations = async (storeIds: string[], tx?: DbTransactionType) => {
+    if (storeIds.length === 0) return [];
+    const connection = tx ?? db;
+    return await connection.select().from(reservations)
+        .where(and(inArray(reservations.storeId, storeIds), eq(reservations.status, "ongoing")));
+};
+
 export const selectReservation = async (storeId: string, id: string, tx?: DbTransactionType) => {
     const connection = tx ?? db;
     const [reservation] = await connection.select().from(reservations)

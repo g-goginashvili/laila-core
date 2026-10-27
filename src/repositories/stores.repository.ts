@@ -109,8 +109,9 @@ export const replaceTables = async (
 };
 
 // Marking an already-occupied table again keeps its original start time.
-export const updateTableOccupancy = async (storeId: string, tableId: string, occupied: boolean) => {
-    const [table] = await db.update(storeTables)
+export const updateTableOccupancy = async (storeId: string, tableId: string, occupied: boolean, tx?: DbTransactionType) => {
+    const connection = tx ?? db;
+    const [table] = await connection.update(storeTables)
         .set({ occupiedSince: occupied ? sql`coalesce(${storeTables.occupiedSince}, now())` : null })
         .where(and(eq(storeTables.id, tableId), eq(storeTables.storeId, storeId)))
         .returning();

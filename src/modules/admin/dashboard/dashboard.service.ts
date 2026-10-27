@@ -11,8 +11,6 @@ import { capacityFor, isTakingBookings, nextFreeStarts, shiftsOn, SLOT_MINUTES }
 
 const ARRIVALS_WINDOW_MINUTES = 90;
 const HISTORY_DAYS = 14;
-const URGENT_PARTY_SIZE = 6;
-const URGENT_LEAD_MINUTES = 120;
 
 type AttentionKindType = "error" | "warning" | "info";
 type AttentionActionType =
@@ -78,7 +76,7 @@ export const getDashboardService = async (adminUserId: string) => {
         const earliest = freeStarts.reduce<typeof freeStarts[number] | undefined>(
             (best, entry) => !best || entry.start < best.start ? entry : best, undefined);
 
-        const seated = today.filter(reservation => reservation.status === "seated");
+        const seated = today.filter(reservation => reservation.status === "ongoing");
 
         collectAttention(attention, store, now, today, storeTables.length, storeHours.length, tableLabel);
         const storeSoldOut = soldOut.filter(item => item.storeId === store.id);
@@ -93,7 +91,7 @@ export const getDashboardService = async (adminUserId: string) => {
         }
 
         arrivals.push(...today
-            .filter(reservation => (reservation.status === "confirmed" || reservation.status === "unconfirmed")
+            .filter(reservation => reservation.status === "upcoming"
                 && reservation.startMinutes >= now.minutes
                 && reservation.startMinutes <= now.minutes + ARRIVALS_WINDOW_MINUTES)
             .map(reservation => ({ ...reservation, tableLabel: tableLabel(reservation.tableId) })));
@@ -190,18 +188,8 @@ const collectAttention = (
         const time = formatMinutes(reservation.startMinutes);
         const table = tableLabel(reservation.tableId);
 
-        if (reservation.status === "unconfirmed" && reservation.startMinutes + store.gracePeriodMinutes >= now.minutes) {
-            const urgent = reservation.partySize >= URGENT_PARTY_SIZE || reservation.startMinutes - now.minutes <= URGENT_LEAD_MINUTES;
-            attention.push({
-                storeId: store.id, kind: urgent ? "error" : "warning",
-                title: `Party of ${reservation.partySize} at ${time} still unconfirmed — ${reservation.guestName}`,
-                body: table ? `${table} is being held for it.` : "No table assigned yet.",
-                action: { type: "call", phone: reservation.phone },
-            });
-        }
-
         const lateBy = now.minutes - reservation.startMinutes;
-        if (reservation.status === "confirmed" && lateBy > store.gracePeriodMinutes) {
+        if (reservation.status === "upcoming" && lateBy > store.gracePeriodMinutes) {
             attention.push({
                 storeId: store.id, kind: "error",
                 title: `No-show holding ${table ?? "a table"} — ${reservation.guestName} · ${reservation.partySize}, ${time}`,

@@ -22,7 +22,7 @@ export const addReservationSchema = z.object({
     ...reservationFields,
     email: reservationFields.email.default(""),
     notes: reservationFields.notes.default(""),
-    status: z.enum(["unconfirmed", "confirmed", "seated"]).default("confirmed"),
+    status: z.enum(["upcoming", "ongoing"]).default("upcoming"),
 });
 
 export const updateReservationSchema = z.object(reservationFields).partial()

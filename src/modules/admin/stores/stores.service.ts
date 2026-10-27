@@ -7,6 +7,7 @@ import { AppError } from "../../../utils/app-error.js";
 import { db } from "../../../lib/db.js";
 import { getOwnOrganisation } from "../organisations/organisations.service.js";
 import { setOrganisationSingleLocation } from "../../../repositories/organisations.repository.js";
+import { selectOngoingReservations } from "../../../repositories/reservations.repository.js";
 import type {
     AddStoreSchemaType, StoreClosureSchemaType, StoreHoursSchemaType, StoreTablesSchemaType, TableOccupancySchemaType,
     UpdateStoreSchemaType
@@ -25,16 +26,24 @@ export const getOwnedStore = async (adminUserId: string, storeId: string) => {
     return orThrowNotFound(await selectStore(storeId, organisation.id));
 };
 
+// Name of the party seated at the table through an ongoing reservation; such a table can't be freed by hand.
+const withOngoingGuest = <T extends { id: string }>(table: T, ongoing: { tableId: string | null, guestName: string }[]) => ({
+    ...table,
+    ongoingGuest: ongoing.find(reservation => reservation.tableId === table.id)?.guestName ?? null,
+});
+
 const withSettings = async (storeList: storesSelectType[]) => {
     const ids = storeList.map(store => store.id);
-    const [hours, tables, menuCounts] = await Promise.all([selectHours(ids), selectTables(ids), selectMenuCounts(ids)]);
+    const [hours, tables, menuCounts, ongoing] = await Promise.all([
+        selectHours(ids), selectTables(ids), selectMenuCounts(ids), selectOngoingReservations(ids),
+    ]);
     // Fetch from a day early, then trim per store's own time zone.
     const closures = await selectClosures(ids, addDays(serviceNow("UTC").date, -1));
 
     return storeList.map(store => ({
         ...store,
         hours: hours.filter(shift => shift.storeId === store.id),
-        tables: tables.filter(table => table.storeId === store.id),
+        tables: tables.filter(table => table.storeId === store.id).map(table => withOngoingGuest(table, ongoing)),
         closures: closures.filter(closure => closure.storeId === store.id && closure.date >= serviceNow(store.timezone).date),
         menuGroupCount: menuCounts.groups.find(row => row.storeId === store.id)?.value ?? 0,
         menuItemCount: menuCounts.items.find(row => row.storeId === store.id)?.value ?? 0,
@@ -114,6 +123,10 @@ export const replaceTablesService = async (adminUserId: string, id: string, { ta
     const existingIds = new Set((await selectTables([id])).map(table => table.id));
     if (tables.some(table => table.id && !existingIds.has(table.id))) throw new AppError(404, "Table not found.");
 
+    const keptIds = new Set(ids);
+    const seated = (await selectOngoingReservations([id])).find(reservation => reservation.tableId && !keptIds.has(reservation.tableId));
+    if (seated) throw new AppError(409, `${seated.guestName} is seated at a table you removed. Complete their reservation first.`);
+
     await replaceTables(id, tables);
     return await getStoreService(adminUserId, id);
 };
@@ -122,7 +135,12 @@ export const setTableOccupancyService = async (
     adminUserId: string, id: string, tableId: string, { occupied }: TableOccupancySchemaType
 ) => {
     await getOwnedStore(adminUserId, id);
-    return orThrowNotFound(await updateTableOccupancy(id, tableId, occupied), "Table not found.");
+    const ongoing = await selectOngoingReservations([id]);
+    const seated = ongoing.find(reservation => reservation.tableId === tableId);
+    if (!occupied && seated) {
+        throw new AppError(409, `${seated.guestName} is seated here. Mark their reservation completed to free the table.`);
+    }
+    return withOngoingGuest(orThrowNotFound(await updateTableOccupancy(id, tableId, occupied), "Table not found."), ongoing);
 };
 
 export const addClosureService = async (adminUserId: string, id: string, { date, note }: StoreClosureSchemaType) => {

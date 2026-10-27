@@ -4,11 +4,11 @@ import { stores } from "./stores.js";
 import { storeTables } from "./store-settings.js";
 import { diners } from "./diners.js";
 
-export const RESERVATION_STATUSES = ["unconfirmed", "confirmed", "seated", "finished", "no_show", "cancelled"] as const;
+export const RESERVATION_STATUSES = ["upcoming", "ongoing", "completed", "no_show", "cancelled"] as const;
 export type ReservationStatusType = typeof RESERVATION_STATUSES[number];
 
 // Statuses that hold a table for their time slot.
-export const ACTIVE_RESERVATION_STATUSES: ReservationStatusType[] = ["unconfirmed", "confirmed", "seated"];
+export const ACTIVE_RESERVATION_STATUSES: ReservationStatusType[] = ["upcoming", "ongoing"];
 
 export const reservations = pgTable("reservations", {
     id: varchar({ length: 255 }).primaryKey().$defaultFn(uuidv7),
@@ -25,7 +25,7 @@ export const reservations = pgTable("reservations", {
     phone: varchar({ length: 30 }).notNull(),
     email: varchar({ length: 255 }).notNull().default(""),
     notes: text().notNull().default(""),
-    status: varchar({ length: 20 }).$type<ReservationStatusType>().notNull().default("confirmed"),
+    status: varchar({ length: 20 }).$type<ReservationStatusType>().notNull().default("upcoming"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index("reservations_store_date_idx").on(table.storeId, table.date)]);
