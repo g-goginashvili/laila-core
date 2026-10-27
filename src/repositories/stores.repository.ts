@@ -2,7 +2,7 @@ import { db, type DbTransactionType } from "../lib/db.js"
 import { stores, type storesInsertType, type storesUpdateType } from "../db/schema/stores.js";
 import { storeClosures, storeHours, storeTables } from "../db/schema/store-settings.js";
 import { menuGroups, menuItems } from "../db/schema/menu.js";
-import { and, asc, count, eq, gte, inArray, notInArray, sql } from "drizzle-orm";
+import { and, asc, count, eq, gte, inArray, ne, notInArray, sql } from "drizzle-orm";
 
 const byIdInOrganisation = (id: string, organisationId: string) =>
     and(eq(stores.id, id), eq(stores.organisationId, organisationId));
@@ -29,6 +29,11 @@ export const selectStore = async (id: string, organisationId: string) => {
 
 export const selectStoresList = async (organisationId: string) => {
     return await db.select().from(stores).where(eq(stores.organisationId, organisationId)).orderBy(asc(stores.createdAt), asc(stores.id));
+};
+
+// Every store diners may see; drafts stay hidden.
+export const selectListedStores = async () => {
+    return await db.select().from(stores).where(ne(stores.status, "draft")).orderBy(asc(stores.storeName), asc(stores.id));
 };
 
 export const updateStore = async (id: string, organisationId: string, updateValues: storesUpdateType) => {

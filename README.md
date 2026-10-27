@@ -19,7 +19,7 @@ and keep `FIREBASE_AUTH_EMULATOR_HOST` set.
 Admin routes live under `/admin` and expect `Authorization: Bearer <Firebase ID token>`. The token must carry the `admin`
 custom claim (set during sign-up). The organisation and stores are always resolved from the token's
 user, never from the request. Diners (Gviano app) get the `diner` claim from `/auth/diner-sign-up` and
-are refused by every admin route.
+are refused by every admin route; diner routes live under `/diner` and refuse admins.
 
 ## Endpoints (prefix `/api`)
 
@@ -39,6 +39,7 @@ are refused by every admin route.
 | GET, POST, PATCH, DELETE, PUT | `/admin/stores/:storeId/menu/…` | admin | Groups, items, `PUT groups/order` |
 | GET, POST, PATCH, DELETE | `/admin/stores/:storeId/reservations[/:id]` | admin | `GET` needs `?from=&to=` (YYYY-MM-DD) |
 | GET | `/admin/dashboard` | admin | Today, attention items, arrivals, 14-day history per store |
+| GET | `/diner/stores` | diner | Every non-draft store with `isOpenTonight` and `slotsTonight` (free start times, HH:MM) |
 | POST | `/waitlist` | public | Landing-page launch notification sign-up |
 
 Errors are returned as `{ "message": string }`. Unique-constraint violations map to 409.
