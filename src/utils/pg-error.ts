@@ -8,6 +8,7 @@ type PgErrorType = {
 const CONSTRAINT_MESSAGES: Record<string, string> = {
     users_email_key: "Email already in use",
     users_phone_number_key: "Phone number already in use",
+    diners_phone_number_key: "Phone number already in use",
     organisations_admin_user_id_key: "This account already has an organisation",
     waitlist_email_key: "Email already on the waitlist",
 };

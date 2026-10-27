@@ -26,7 +26,7 @@ are refused by every admin route; diner routes live under `/diner` and refuse ad
 | Method | Path | Auth | Notes |
 | --- | --- | --- | --- |
 | POST | `/auth/admin-sign-up` | public | Creates Firebase user, user row, organisation, and a store when `singleLocation` |
-| POST | `/auth/diner-sign-up` | public | `{ email, password }`: creates a Firebase user with the `diner` role and a diners row |
+| POST | `/auth/diner-sign-up` | public | `{ email, password }`: creates a Firebase user with the `diner` role and a diners row (email only; the profile is filled in later) |
 | GET | `/admin/account` | admin | The signed-in admin's user details |
 | GET | `/admin/org` | admin | The signed-in admin's organisation |
 | GET | `/admin/stores` | admin | Stores of the admin's organisation |
@@ -40,6 +40,8 @@ are refused by every admin route; diner routes live under `/diner` and refuse ad
 | GET, POST, PATCH, DELETE | `/admin/stores/:storeId/reservations[/:id]` | admin | `GET` needs `?from=&to=` (YYYY-MM-DD) |
 | GET | `/admin/dashboard` | admin | Today, attention items, arrivals, 14-day history per store |
 | GET | `/diner/stores` | diner | Every non-draft store with `isOpenTonight` and `slotsTonight` (free start times, HH:MM) |
+| GET | `/diner/account` | diner | `{ email, name, surname, phoneNumber, emailVerified, missing, canBook }`; `missing` lists what is left of `name`, `surname`, `phoneNumber`, `emailVerification` |
+| PATCH | `/diner/account` | diner | Any of `{ name, surname, phoneNumber }` (E.164); returns the same shape as GET |
 | POST | `/waitlist` | public | Landing-page launch notification sign-up |
 
 Errors are returned as `{ "message": string }`. Unique-constraint violations map to 409.
