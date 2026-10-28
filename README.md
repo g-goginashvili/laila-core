@@ -40,7 +40,7 @@ are refused by every admin route; diner routes live under `/diner` and refuse ad
 | GET, POST, PATCH, DELETE | `/admin/stores/:storeId/reservations[/:id]` | admin | `GET` needs `?from=&to=` (YYYY-MM-DD) |
 | GET | `/admin/dashboard` | admin | Today, attention items, arrivals, 14-day history per store |
 | GET | `/diner/stores` | diner | Every non-draft store with `isOpenTonight` and `slotsTonight` (free start times, HH:MM) |
-| GET | `/diner/account` | diner | `{ email, name, surname, phoneNumber, emailVerified, missing, canBook }`; `missing` lists what is left of `name`, `surname`, `phoneNumber`, `emailVerification` |
+| GET | `/diner/account` | diner | `{ email, name, surname, phoneNumber, missing, canBook }`; `missing` lists what is left of `name`, `surname`, `phoneNumber` |
 | PATCH | `/diner/account` | diner | Any of `{ name, surname, phoneNumber }` (E.164); returns the same shape as GET |
 | POST | `/waitlist` | public | Landing-page launch notification sign-up |
 

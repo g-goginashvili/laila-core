@@ -8,11 +8,11 @@ import { getDinerAccount } from "../account/account.service.js";
 import { assertBookable, getListedStore } from "../stores/stores.service.js";
 import type { BookReservationType } from "./reservations.schema.js";
 
-// Books the smallest free table that seats the party. Only diners with a complete profile and a verified email
-// may book; the app sends anyone else to account settings first.
+// Books the smallest free table that seats the party. Only diners with a complete profile may book; the app
+// sends anyone else to account settings first.
 export const bookReservationService = async (uid: string, { storeId, date, startMinutes, partySize, notes }: BookReservationType) => {
     const account = await getDinerAccount(uid);
-    if (!account.canBook) throw new AppError(403, "Finish your account and verify your email before booking.");
+    if (!account.canBook) throw new AppError(403, "Finish your account before booking.");
 
     const store = await getListedStore(storeId);
     const now = serviceNow(store.timezone);

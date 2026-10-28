@@ -2,7 +2,6 @@ import { pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
 
 // Diners sign up from the Gviano app with only an email and password; restaurant admins live in users.
 // The profile (name, surname, phone) is filled in later from account settings and is required to book.
-// Whether the email is verified is not stored here: Firebase owns it.
 export const diners = pgTable("diners", {
     // Firebase uid
     id: varchar({ length: 255 }).primaryKey(),
